@@ -10,7 +10,7 @@ import base64
 
 # Set page configuration
 st.set_page_config(
-    page_title="SEC Financial Data Extractor",
+    page_title="SEC EDGAR Extractor",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -64,7 +64,7 @@ def download_company_tickers():
     """
     url = "https://www.sec.gov/files/company_tickers.json"
     headers = {
-        'User-Agent': 'SEC Financial Data Extractor (your-name@example.com)',
+        'User-Agent': 'Kerry Back (keb7@rice.edu)',
     }
     
     try:
@@ -107,7 +107,7 @@ def get_cik_from_ticker(ticker, company_data):
 
 def download_sec_data(cik):
     """
-    Download SEC financial data for a given CIK.
+    Download SEC financial statement data for a given CIK.
     
     Args:
         cik (str): The CIK number
@@ -120,11 +120,11 @@ def download_sec_data(cik):
     
     url = f"https://data.sec.gov/api/xbrl/companyfacts/CIK{padded_cik}.json"
     headers = {
-        'User-Agent': 'SEC Financial Data Extractor (your-name@example.com)',
+        'User-Agent': 'Kerry Back (keb7@rice.edu)',
     }
     
     try:
-        with st.spinner(f"Downloading SEC data for CIK {int(cik)}..."):
+        with st.spinner(f"Downloading financial statement data for CIK {int(cik)}..."):
             response = requests.get(url, headers=headers)
             
         if response.status_code == 200:
@@ -266,25 +266,27 @@ def get_download_link(df, filename, button_text):
 # ---- Main App ----
 
 def main():
-    st.markdown('<h1 class="main-header">SEC Financial Data Extractor</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="info-text">Enter a stock ticker symbol to extract financial data from the SEC EDGAR database.</p>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">SEC EDGAR Extractor</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="info-text">Enter a stock ticker symbol to extract financial statement data from the SEC EDGAR database.</p>', unsafe_allow_html=True)
     
     # Sidebar
     st.sidebar.title("About")
     st.sidebar.info(
-        "This app allows you to extract financial data for US public companies "
-        "from the SEC's EDGAR database. Enter a ticker symbol to get started."
+        "This app allows you to extract financial statement data for US public companies "
+        "from the SEC EDGAR database."
     )
     st.sidebar.title("Instructions")
     st.sidebar.markdown(
-        "1. Enter a ticker symbol (e.g., AAPL, MSFT, GOOGL)"
-        "2. Click 'Look up CIK'"
-        "3. If the CIK is found, click 'Download SEC Data'"
-        "4. Once the data is processed, download the annual and quarterly CSV files"
-    )
+        """
+        1. Enter a ticker symbol (e.g., AAPL, MSFT, GOOGL)
+        2. Click 'Look up CIK'
+        3. If the CIK is found, click 'Extract Data'
+        4. Once the data is extracted, download the annual and quarterly Excel files
+        """
+    )   
     
     # Input for ticker symbol
-    ticker = st.text_input("Enter Ticker Symbol:", placeholder="e.g., AAPL").strip().upper()
+    ticker = st.text_input("Enter Ticker Symbol:", placeholder="e.g., AAPL", on_change=None).strip().upper()
     
     # Look up CIK button is now always shown
     if st.button("Look up CIK"):
@@ -307,10 +309,10 @@ def main():
     
     # If CIK is in session state, show download button
     if 'cik' in st.session_state:
-        # st.markdown('<h2 class="sub-header">Download SEC Data</h2>', unsafe_allow_html=True)
+        # st.markdown('<h2 class="sub-header">Download Data</h2>', unsafe_allow_html=True)
         # st.info(f"CIK: {st.session_state['cik']} | Company: {st.session_state['company_name']}")
         
-        if st.button("Download SEC Data"):
+        if st.button("Extract Data"):
             # Download SEC data
             sec_data = download_sec_data(st.session_state['cik'])
             
