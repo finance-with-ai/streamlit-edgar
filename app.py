@@ -42,8 +42,8 @@ st.markdown("""
         font-weight: bold;
     }
     .download-button {
-        background-color: #1E88E5;
-        color: white;
+        background-color: #90CAF9;
+        color: #000000;
         padding: 0.5rem 1rem;
         border-radius: 0.3rem;
         text-decoration: none;
@@ -286,7 +286,7 @@ def main():
     )   
     
     # Input for ticker symbol
-    ticker = st.text_input("Enter Ticker Symbol:", placeholder="e.g., AAPL", on_change=None).strip().upper()
+    ticker = st.text_input("Enter Ticker Symbol:", placeholder="e.g., AAPL", key="ticker_input").strip().upper()
     
     # Look up CIK button is now always shown
     if st.button("Look up CIK"):
@@ -349,13 +349,7 @@ def main():
                         st.write(f"Number of metrics: {quarterly_df.shape[0]}")
                         st.write(f"Total data points: {quarterly_df.size}")
                     
-                    # Show sample of the data
-                    st.markdown("### Sample of Annual Data")
-                    st.dataframe(annual_df.head())
-                    
-                    st.markdown("### Sample of Quarterly Data")
-                    st.dataframe(quarterly_df.head())
-                    
+                                       
                     # Download links
                     st.markdown('<h2 class="sub-header">Download Excel Files</h2>', unsafe_allow_html=True)
                     
