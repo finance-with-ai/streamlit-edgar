@@ -286,10 +286,10 @@ def main():
     )   
     
     # Input for ticker symbol
-    ticker = st.text_input("Enter Ticker Symbol:", placeholder="e.g., AAPL", key="ticker_input").strip().upper()
+    ticker = st.text_input("Enter Ticker Symbol:", placeholder="e.g., AAPL", key="ticker_input", help="Enter a valid stock ticker symbol (e.g., AAPL, MSFT, GOOGL)").strip().upper()
     
     # Look up CIK button is now always shown
-    if st.button("Look up CIK"):
+    if st.button("Look up CIK", key="lookup_cik_button", help="Click to look up the CIK number for the entered ticker"):
         if not ticker:
             st.warning("Please enter a ticker symbol first.")
         else:
@@ -312,7 +312,7 @@ def main():
         # st.markdown('<h2 class="sub-header">Download Data</h2>', unsafe_allow_html=True)
         # st.info(f"CIK: {st.session_state['cik']} | Company: {st.session_state['company_name']}")
         
-        if st.button("Extract Data"):
+        if st.button("Extract Data", key="extract_data_button", help="Click to extract financial data for the company"):
             # Download SEC data
             sec_data = download_sec_data(st.session_state['cik'])
             
@@ -369,3 +369,138 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# Add structured metadata for better machine readability
+def add_structured_metadata():
+    """Add structured metadata to the page"""
+    metadata_json = {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "SEC EDGAR Extractor",
+        "description": "Extract financial statement data from SEC EDGAR filings",
+        "applicationCategory": "FinancialApplication",
+        "operatingSystem": "All",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        }
+    }
+    
+    # Add the metadata to the page
+    metadata_html = f'<script type="application/ld+json">{json.dumps(metadata_json)}</script>'
+    st.markdown(metadata_html, unsafe_allow_html=True)
+
+# Initialize structured metadata
+#if "json" not in app_code:
+#    app_code = app_code.replace("import base64", "import base64\nimport json")
+#
+# Direct download URLs
+def setup_direct_download_urls():
+    """Set up direct download URLs for data"""
+    
+    # Check if we're in a Streamlit context
+    if not hasattr(st, 'session_state'):
+        return
+    
+    # Create a function to generate direct download URLs
+    @st.cache_data
+    def get_direct_download_url(ticker, data_type="annual", format="excel"):
+        """Generate a direct download URL for data"""
+        if not ticker:
+            return None
+        
+        # Get the CIK for the ticker
+        cik = get_cik_from_ticker(ticker)
+        if not cik:
+            return None
+        
+        # Get the SEC data
+        sec_data = get_sec_data(cik)
+        if not sec_data:
+            return None
+        
+        # Process the data
+        annual_df, quarterly_df = process_sec_data(sec_data, None)
+        
+        # Get the appropriate data
+        df = annual_df if data_type.lower() == "annual" else quarterly_df
+        
+        # Create a BytesIO object to store the file
+        output = io.BytesIO()
+        
+        # Save the data in the requested format
+        if format.lower() == "excel":
+            df.to_excel(output, engine='openpyxl')
+            mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            file_ext = "xlsx"
+        elif format.lower() == "csv":
+            df.to_csv(output, index=True)
+            mime_type = "text/csv"
+            file_ext = "csv"
+        elif format.lower() == "json":
+            output.write(df.to_json().encode())
+            mime_type = "application/json"
+            file_ext = "json"
+        else:
+            return None
+        
+        # Get the value of the BytesIO buffer
+        data = output.getvalue()
+        
+        # Convert to base64
+        b64 = base64.b64encode(data).decode()
+        
+        # Create the download URL
+        download_url = f"data:{mime_type};base64,{b64}"
+        
+        return download_url
+    
+    # Add the function to the session state
+    st.session_state.get_direct_download_url = get_direct_download_url
+
+# Initialize direct download URLs
+setup_direct_download_urls()
+
+# API Endpoints for direct data access
+def add_api_endpoints():
+    """Add API endpoints for direct data access"""
+    
+    # Check if we're in a Streamlit context
+    if not hasattr(st, 'session_state'):
+        return
+    
+    # Create a route for the /api/data endpoint
+    @st.cache_data
+    def api_get_data(ticker=None, data_type="annual"):
+        """API endpoint to get data for a ticker"""
+        if not ticker:
+            return {"error": "No ticker provided"}
+        
+        # Get the CIK for the ticker
+        cik = get_cik_from_ticker(ticker)
+        if not cik:
+            return {"error": f"Could not find CIK for ticker {ticker}"}
+        
+        # Get the SEC data
+        sec_data = get_sec_data(cik)
+        if not sec_data:
+            return {"error": f"Could not retrieve SEC data for CIK {cik}"}
+        
+        # Process the data
+        annual_df, quarterly_df = process_sec_data(sec_data, None)
+        
+        # Return the appropriate data
+        if data_type.lower() == "annual":
+            return annual_df.to_dict()
+        elif data_type.lower() == "quarterly":
+            return quarterly_df.to_dict()
+        else:
+            return {"error": f"Invalid data_type: {data_type}. Must be 'annual' or 'quarterly'"}
+    
+    # Add the API endpoint to the session state
+    st.session_state.api_get_data = api_get_data
+
+# Initialize API endpoints
+add_api_endpoints()
