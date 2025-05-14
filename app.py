@@ -64,7 +64,7 @@ def download_company_tickers():
     """
     url = "https://www.sec.gov/files/company_tickers.json"
     headers = {
-        'User-Agent': 'Kerry Back (keb7@rice.edu)',
+        'User-Agent': 'SEC EDGAR Extractor (keb7@rice.edu)',
     }
     
     try:
@@ -120,7 +120,7 @@ def download_sec_data(cik):
     
     url = f"https://data.sec.gov/api/xbrl/companyfacts/CIK{padded_cik}.json"
     headers = {
-        'User-Agent': 'Kerry Back (keb7@rice.edu)',
+        'User-Agent': 'SEC EDGAR Extractor (keb7@rice.edu)',
     }
     
     try:
@@ -320,7 +320,7 @@ def main():
                 st.success("SEC data downloaded successfully")
                 
                 # Process the data
-                st.markdown('<h2 class="sub-header">Processing Data</h2>', unsafe_allow_html=True)
+                st.markdown('<h3 class="sub-header">Processing Data</h3>', unsafe_allow_html=True)
                 progress_bar = st.progress(0, text="Starting processing...")
                 
                 annual_df, quarterly_df = process_sec_data(sec_data, progress_bar)
@@ -333,7 +333,7 @@ def main():
                     st.session_state['quarterly_df'] = quarterly_df
                     
                     # Display summary
-                    st.markdown('<h2 class="sub-header">Data Summary</h2>', unsafe_allow_html=True)
+                    # st.markdown('<h2 class="sub-header">Data Summary</h2>', unsafe_allow_html=True)
                     
                     col1, col2 = st.columns(2)
                     
@@ -351,7 +351,7 @@ def main():
                     
                                        
                     # Download links
-                    st.markdown('<h2 class="sub-header">Download Excel Files</h2>', unsafe_allow_html=True)
+                    #st.markdown('<h2 class="sub-header">Download Excel Files</h2>', unsafe_allow_html=True)
                     
                     col1, col2 = st.columns(2)
                     
